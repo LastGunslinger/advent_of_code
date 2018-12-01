@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "advent_of_code"
+version = "0.1.0"
+description = "Puzzles from the Advent of Code puzzle challenge"
+authors = ["Reginald Johnson <reginald.johnson+github@outlook.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+flake8 = "^3.6"
+mypy = "^0.641.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
