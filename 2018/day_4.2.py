@@ -48,24 +48,15 @@ In the example above, Guard #10 spent the most minutes asleep, a total of 50 min
 While this example listed the entries in chronological order, your entries are in the order you found them. You'll need to organize them before they can be analyzed.
 
 What is the ID of the guard you chose multiplied by the minute you chose? (In the above example, the answer would be 10 * 24 = 240.)
-
-Your puzzle answer was 151754.
-
-The first half of this puzzle is complete! It provides one gold star: *
-
---- Part Two ---
-Strategy 2: Of all guards, which guard is most frequently asleep on the same minute?
-
-In the example above, Guard #99 spent minute 45 asleep more than any other guard or minute - three times in total. (In all other cases, any guard spent any minute asleep at most twice.)
-
-What is the ID of the guard you chose multiplied by the minute you chose? (In the above example, the answer would be 99 * 45 = 4455.)
 '''
 
+from pprint import PrettyPrinter
 import re
 from collections import defaultdict
 from pathlib import Path
-from pprint import PrettyPrinter
 from typing import Dict, List
+
+import arrow
 
 
 def sleep_time(timestamps: List[str]) -> Dict[int, int]:
@@ -108,28 +99,20 @@ def main(filepath: Path):
     timestamps = sorted(get_input(filepath))
     guard_dict = split_by_guard(timestamps)
     sleepiest_guard = 0
-    sleep_dict = {}
-    sleep_max = 0
+    sleepiest_minute = 0
+    frequency = 0
 
     for guard, val in guard_dict.items():
         # print(guard)
         minutes_asleep = sleep_time(val)
-        sleep_sum = sum(minutes_asleep.values())
 
-        if sum(minutes_asleep.values()) > sleep_max:
-            sleep_max = sleep_sum
-            sleepiest_guard = guard
-            sleep_dict = minutes_asleep
-
-    sleepiest_minute = 0
-    sleep_max = 0
-    for minute, time_spent in sleep_dict.items():
-        if time_spent > sleep_max:
-            sleep_max = time_spent
-            sleepiest_minute = minute
+        for minute, time_spent in minutes_asleep.items():
+            if time_spent > frequency:
+                frequency = time_spent
+                sleepiest_guard = guard
+                sleepiest_minute = minute
 
     print(sleepiest_guard * sleepiest_minute)
-    # sleepiest_minute = get_sleepiest_minute(guard_dict[sleepiest_guard])
 
 
 if __name__ == '__main__':
