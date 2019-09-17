@@ -54,66 +54,98 @@ What is the size of the largest area that isn't infinite?
 '''
 
 from pathlib import Path
+import operator
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import Set
+from collections import defaultdict
 
 
 @dataclass
 class Point:
-    x: int
-    y: int
-    closest: List['Point'] = field(default_factory=list)
+    x: int = field(default_factory=int)
+    y: int = field(default_factory=int)
 
-    def closest_point(self, other_points: List['Point']):
-        distances = []
-
-        for point in other_points:
-            if self == point:
-                continue
-
-            distance = self.manhattan_distance(point)
-            if distance != 0:
-                distances.append(
-                    (point, distance)
-                )
-
-        distances.sort(key=lambda x: x[1])
-        self.closest = [x[0] for x in distances]
-
-    def manhattan_distance(self, other: 'Point') -> int:
+    def _distance(self, other):
         return abs(self.x - other.x) + abs(self.y - other.y)
+
+    def closest_point(self, points: Set['Point']):
+        min_distance = 0
+        closest = self
+
+        for point in points:
+            if self == point:
+                return point, 0
+
+            distance = self._distance(point)
+            if min_distance == 0 or distance < min_distance:
+                min_distance = distance
+                closest = point
+            elif distance == min_distance:
+                return None, 0
+
+        return closest, min_distance
 
     def __hash__(self):
         return hash((self.x, self.y))
 
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
 
-def main(data):
+    def __lt__(self, other):
+        origin = Point(0, 0)
+        return origin._distance(self) < origin._distance(other)
 
-    p1 = Point(1, 1)
-    p2 = Point(1, 6)
+    def __gt__(self, other):
+        origin = Point(0, 0)
+        return origin._distance(self) > origin._distance(other)
 
-    print(p1.manhattan_distance(p2))
 
-    points = set()
-    for line in data:
-        line = line.strip()
-        tokens = line.split(',')
-        points.add(Point(
-            x=int(tokens[0]),
-            y=int(tokens[1])
-        ))
+def main(data: str):
 
-    for point in points:
+    points_of_interest = set(
+        Point(int(p.split(',')[0]), int(p.split(',')[1])) for p in data
+    )
 
-        point.closest_point(points)
-        # print(point)
+    all_points = set()
+    min_x = min(p.x for p in points_of_interest)
+    min_y = min(p.y for p in points_of_interest)
+    max_x = max(p.x for p in points_of_interest)
+    max_y = max(p.y for p in points_of_interest)
+    distance_dict = defaultdict(int)
 
-    return None
+    # The points that have x or y values matching the min and max x and y values are defacto infinite
+
+    for x in range(max_x + 1):
+        for y in range(max_y + 1):
+            p = Point(x, y)
+            all_points.add(p)
+
+    for point in all_points:
+        closest, distance = point.closest_point(points_of_interest)
+        if not closest:
+            distance_dict[point] += 1
+        elif closest.x == min_x or closest.x == max_x:
+            continue
+        elif closest.y == min_y or closest.y == max_y:
+            continue
+        else:
+            distance_dict[closest] += 1
+
+            # print(f'{point} is closest to {closest} at {distance} meters')
+
+    # print(sorted(list(all_points)))
+
+    # print(distance_dict[Point(3, 4)])
+    # print(distance_dict[Point(5, 5)])
+    return max(distance_dict, key=distance_dict.get), max(distance_dict.values())
 
 
 if __name__ == '__main__':
     filepath = Path.cwd() / '2018/day_6.txt'
-    with open(filepath) as f:
 
-        result = main(f.readlines())
-        print(result)
+    with open(filepath) as f:
+        data = [x.strip() for x in f.readlines()]
+
+    result = main(data)
+    print(f'Result: {result}')
+
